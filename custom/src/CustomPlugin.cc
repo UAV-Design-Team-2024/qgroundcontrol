@@ -19,31 +19,34 @@
 
 QGC_LOGGING_CATEGORY(CustomLog, "gcs.custom.customplugin")
 
-CustomFlyViewOptions::CustomFlyViewOptions(CustomOptions* options, QObject* parent)
-    : QGCFlyViewOptions(options, parent)
-{
 
-}
+// do nothing in the constructor
+CustomFlyViewOptions::CustomFlyViewOptions(CustomOptions* options, QObject* parent) 
+    : QGCFlyViewOptions(options, parent) {}
 
-// This custom build does not support conecting multiple vehicles to it. This in turn simplifies various parts of the QGC ui.
-bool CustomFlyViewOptions::showMultiVehicleList(void) const
-{
+/*
+This custom build does not support conecting multiple vehicles to it. This in turn simplifies various parts of the QGC ui.
+
+This is good
+*/
+bool CustomFlyViewOptions::showMultiVehicleList(void) const {
     return false;
 }
 
-// This custom build has it's own custom instrument panel. Don't show regular one.
-bool CustomFlyViewOptions::showInstrumentPanel(void) const
-{
+/*
+
+This custom build has it's own custom instrument panel. Don't show regular one.
+
+This is good
+*/
+bool CustomFlyViewOptions::showInstrumentPanel(void) const {
     return false;
 }
 
 CustomOptions::CustomOptions(CustomPlugin*, QObject* parent)
-    : QGCOptions(parent)
-{
-}
+    : QGCOptions(parent) {}
 
-QGCFlyViewOptions* CustomOptions::flyViewOptions(void)
-{
+QGCFlyViewOptions* CustomOptions::flyViewOptions(void) {
     if (!_flyViewOptions) {
         _flyViewOptions = new CustomFlyViewOptions(this, this);
     }
@@ -51,47 +54,40 @@ QGCFlyViewOptions* CustomOptions::flyViewOptions(void)
 }
 
 // Firmware upgrade page is only shown in Advanced Mode.
-bool CustomOptions::showFirmwareUpgrade() const
-{
+bool CustomOptions::showFirmwareUpgrade() const {
     return qgcApp()->toolbox()->corePlugin()->showAdvancedUI();
 }
 
 // Normal QGC needs to work with an ESP8266 WiFi thing which is remarkably crappy. This in turns causes PX4 Pro calibration to fail
 // quite often. There is a warning in regular QGC about this. Overriding the and returning true means that your custom vehicle has
 // a reliable WiFi connection so don't show that warning.
-bool CustomOptions::wifiReliableForCalibration(void) const
-{
+bool CustomOptions::wifiReliableForCalibration(void) const {
     return true;
 }
 
-CustomPlugin::CustomPlugin(QGCApplication *app, QGCToolbox* toolbox)
-    : QGCCorePlugin(app, toolbox)
-{
+CustomPlugin::CustomPlugin(QGCApplication *app, QGCToolbox* toolbox) 
+    : QGCCorePlugin(app, toolbox) {
     _options = new CustomOptions(this, this);
     _showAdvancedUI = false;
 }
 
-CustomPlugin::~CustomPlugin()
-{
-}
+// do nothing in the destructor
+CustomPlugin::~CustomPlugin() {}
 
-void CustomPlugin::setToolbox(QGCToolbox* toolbox)
-{
+void CustomPlugin::setToolbox(QGCToolbox* toolbox) {
     QGCCorePlugin::setToolbox(toolbox);
 
     // Allows us to be notified when the user goes in/out out advanced mode
     connect(qgcApp()->toolbox()->corePlugin(), &QGCCorePlugin::showAdvancedUIChanged, this, &CustomPlugin::_advancedChanged);
 }
 
-void CustomPlugin::_advancedChanged(bool changed)
-{
+void CustomPlugin::_advancedChanged(bool changed) {
     // Firmware Upgrade page is only show in Advanced mode
     emit _options->showFirmwareUpgradeChanged(changed);
 }
 
 //-----------------------------------------------------------------------------
-void CustomPlugin::_addSettingsEntry(const QString& title, const char* qmlFile, const char* iconFile)
-{
+void CustomPlugin::_addSettingsEntry(const QString& title, const char* qmlFile, const char* iconFile) {
     Q_CHECK_PTR(qmlFile);
     // 'this' instance will take ownership on the QmlComponentInfo instance
     _customSettingsList.append(QVariant::fromValue(
@@ -101,13 +97,11 @@ void CustomPlugin::_addSettingsEntry(const QString& title, const char* qmlFile, 
                 this)));
 }
 
-QGCOptions* CustomPlugin::options()
-{
+QGCOptions* CustomPlugin::options() {
     return _options;
 }
 
-QString CustomPlugin::brandImageIndoor(void) const
-{
+QString CustomPlugin::brandImageIndoor(void) const {
     return QStringLiteral("/custom/img/CustomAppIcon.png");
 }
 
