@@ -56,17 +56,17 @@ if __name__ == "__main__":
 
         if qt_dir is not None:
             break
-else:
-    error("No Qt 6.6.3 installation found")
+    else:
+        error("No Qt 6.6.3 installation found")
 
-build_file = "build.sh"
-print("  Found installation at:", qt_dir)
-print("Creating executable file:", build_file )
-file_contents = f'''#!/bin/bash
+    build_file = "build.sh"
+    print("  Found installation at:", qt_dir)
+    print("Creating executable file:", build_file )
+    file_contents = f'''#!/bin/bash
 _bin_path="{qt_dir}/bin"
 _lib_path="{qt_dir}/lib"
 
-if [ ! -d _bin_path ]; then
+if [ ! -d "${{_bin_path}}" ]; then
     echo "Could not find QT resources, reconfiguring"
     ./configure_auto_build
     exit_code=$?
@@ -75,6 +75,7 @@ if [ ! -d _bin_path ]; then
         exit 1
     fi
 fi
+
 export PATH="$PATH:$_bin_path"
 export LD_LIBRARY_PATH="$_lib_path:$LD_LIBRARY_PATH"
 
@@ -86,8 +87,8 @@ cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
 cmake --build build --config Debug
 '''
 
-with open(build_file, 'w') as f: f.write(file_contents)
-os.system(f"chmod a+x \"{build_file}\"")
+    with open(build_file, 'w') as f: f.write(file_contents)
+    os.system(f"chmod a+x \"{build_file}\"")
 
-print("To build the source code, run the command:")
-print("    ./build.sh")
+    print("To build the source code, run the command:")
+    print("    ./build.sh")
