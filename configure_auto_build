@@ -1,8 +1,5 @@
 #!/usr/bin/python3
 import os, platform, sys
-# from shutil import rmtree
-# sys.path.append(os.path.dirname(__file__))
-
 
 scan_dirs = [
     ["~"]
@@ -17,7 +14,7 @@ def abs_path(*args) -> str:
 
 def error(message:str):
     print(f"ERROR: {message}\nExiting ...")
-    exit()
+    exit(1)
 
 
 def confirmInstallationPath(file_path:str):
@@ -44,9 +41,6 @@ def scan(_dir_path:str) -> None:
 
 if __name__ == "__main__":
     install_dir = abs_path(*__file__.split(os.path.sep)[:-1])
-
-    # cleaning up install dir
-    # rmtree(os.path.join(install_dir, "__pycache__"))
     
     hostname = platform.node()
     
@@ -69,8 +63,20 @@ build_file = "build.sh"
 print("  Found installation at:", qt_dir)
 print("Creating executable file:", build_file )
 file_contents = f'''#!/bin/bash
-export PATH="$PATH:{qt_dir}"
-export LD_LIBRARY_PATH="$PATH:{qt_dir}"
+_bin_path="{qt_dir}/bin"
+_lib_path="{qt_dir}/lib"
+
+if [ ! -d _bin_path ]; then
+    echo "Could not find QT resources, reconfiguring"
+    ./configure_auto_build
+    exit_code=$?
+    if [  $exit_code -ne 0 ]; then
+        echo "No QT install found, please install it, then run this again"
+        exit 1
+    fi
+fi
+export PATH="$PATH:$_bin_path"
+export LD_LIBRARY_PATH="$_lib_path:$LD_LIBRARY_PATH"
 
 SCRIPT_PATH="$(cd "$(dirname "${{BASH_SOURCE[0]}}")" && pwd)"
 echo Building qgroundcontrol at $SCRIPT_PATH
