@@ -1,0 +1,87 @@
+#!/usr/bin/python3
+import os, platform, sys
+# from shutil import rmtree
+# sys.path.append(os.path.dirname(__file__))
+
+
+scan_dirs = [
+    ["~"]
+    # ["/", "usr"]
+]
+
+qt_dir = None
+
+def abs_path(*args) -> str:
+    _path = os.path.sep.join([*args])
+    return os.path.abspath(_path.replace("~", os.path.expanduser("~")))
+
+def error(message:str):
+    print(f"ERROR: {message}\nExiting ...")
+    exit()
+
+
+def confirmInstallationPath(file_path:str):
+    global qt_dir
+    split_path = file_path.split("/")
+    try:
+        if split_path[-1] == "libQt6Sensors.so":
+            # print(split_path)
+            if split_path[-4] == "6.6.3":
+                qt_dir = os.path.dirname(os.path.dirname(file_path))
+    except IndexError:
+        pass
+
+
+def scan(_dir_path:str) -> None:
+    for item in os.listdir(_dir_path):
+        _path = os.path.join(_dir_path, item)
+        if os.path.isdir(_path):
+            scan(_path)
+
+    for item in os.listdir(_dir_path):
+        confirmInstallationPath(os.path.join(_dir_path, item))
+
+
+if __name__ == "__main__":
+    install_dir = abs_path(*__file__.split(os.path.sep)[:-1])
+
+    # cleaning up install dir
+    # rmtree(os.path.join(install_dir, "__pycache__"))
+    
+    hostname = platform.node()
+    
+    for dir in scan_dirs:
+        if isinstance(dir, list):
+            dir = abs_path(*dir)
+        
+        if os.path.exists(dir):
+            print("Scanning:", dir)
+            scan(dir)
+        
+        else: print(f"Path \"{dir}\" does not exist, skipping!")
+
+        if qt_dir is not None:
+            break
+else:
+    error("No Qt 6.6.3 installation found")
+
+build_file = "build.sh"
+print("  Found installation at:", qt_dir)
+print("Creating executable file:", build_file )
+file_contents = f'''#!/bin/bash
+export PATH="$PATH:{qt_dir}"
+export LD_LIBRARY_PATH="$PATH:{qt_dir}"
+
+SCRIPT_PATH="$(cd "$(dirname "${{BASH_SOURCE[0]}}")" && pwd)"
+echo Building qgroundcontrol at $SCRIPT_PATH
+
+# build with cmake
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake --build build --config Debug
+'''
+
+with open(build_file, 'w') as f: f.write(file_contents)
+os.system(f"chmod a+x \"{build_file}\"")
+
+print("To build the source code, run the command:")
+print("    ./build.sh")
